@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CleanCity — Waste Management</title>
+  <style>
+    :root {
+      --green: #16804a;
+      --light-green: #e9f5ed;
+      --background: #f5f7f5;
+      --text: #1b2920;
+      --muted: #718078;
+      --border: #e3e9e4;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font: 15px Arial, sans-serif;
+    }
+
+    header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 15px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+    }
+
+    .logo { font-size: 21px; font-weight: bold; }
+    .logo span { color: var(--green); }
+    select, input, textarea {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      font: inherit;
+    }
+
+    main { max-width: 1100px; margin: 30px auto; padding: 0 18px 50px; }
+    .heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 22px;
+    }
+
+    h1 { margin: 0 0 6px; font-size: 28px; }
+    h2 { font-size: 17px; margin: 0; }
+    p { color: var(--muted); }
+    button {
+      border: 0;
+      padding: 11px 15px;
+      border-radius: 8px;
+      background: var(--green);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { opacity: .88; }
+    button.secondary { background: #edf1ed; color: var(--text); }
+    button.small { padding: 8px 10px; font-size: 12px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 13px;
+      margin-bottom: 18px;
+    }
+
+    .card, .stat {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 17px;
+    }
+
+    .stat-label { color: var(--muted); font-size: 13px; }
+    .stat-value { font-size: 27px; font-weight: bold; margin-top: 8px; }
+
+    .analytics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 18px;
+    }
+
+    .analytics h2 { margin-bottom: 13px; }
+    .area-row { display: flex; justify-content: space-between; padding: 6px 0; }
+    .tag {
+      display: inline-block;
+      background: #f0f3f0;
+      border-radius: 15px;
+      padding: 6px 9px;
+      margin: 3px;
+      font-size: 12px;
+    }
+
+    .complaint {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 14px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .complaint:first-of-type { border-top: 0; }
+    .complaint-title { font-weight: bold; }
+    .complaint-info { color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .description { margin: 7px 0; color: #526158; }
+
+    .status {
+      display: inline-block;
+      border-radius: 20px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: bold;
+      background: #fff2df;
+      color: #9c631c;
+    }
+
+    .status-assigned { background: #eaf1ff; color: #3561a1; }
+    .status-in-progress { background: #f0e9ff; color: #6946a3; }
+    .status-resolved { background: #e5f5e9; color: #187144; }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .actions select { max-width: 180px; padding: 8px; font-size: 12px; }
+    .report-form { display: none; margin-bottom: 18px; }
+    .report-form.open { display: block; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 13px; font-weight: bold; }
+    textarea { min-height: 85px; resize: vertical; }
+    .form-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+    .empty { text-align: center; color: var(--muted); padding: 25px; }
+
+    @media (max-width: 700px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .analytics { grid-template-columns: 1fr; }
+      .heading { align-items: flex-start; }
+      .heading h1 { font-size: 23px; }
+      .complaint { grid-template-columns: 1fr; }
+      .actions { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">♻️ Clean<span>City</span></div>
+    <label>
+      Demo role:
+      <select id="role">
+        <option value="citizen">Citizen</option>
+        <option value="admin">Admin</option>
+        <option value="worker">Worker</option>
+      </select>
+    </label>
+  </header>
+
+  <main>
+    <section class="heading">
+      <div>
+        <h1 id="title">Community dashboard</h1>
+        <p id="subtitle">Report waste problems and track cleanup progress.</p>
+      </div>
+      <button id="showForm">＋ Report an issue</button>
+    </section>
+
+    <section class="card report-form" id="reportForm">
+      <h2>Report a waste problem</h2>
+      <form id="complaintForm">
+        <div class="form-grid">
+          <div class="field">
+            <label for="type">Waste problem</label>
+            <select id="type" required>
+              <option value="">Choose a problem</option>
+              <option>Overflowing bin</option>
+              <option>Illegal dumping</option>
+              <option>Missed collection</option>
+              <option>Street litter</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="location">Location</label>
+            <input id="location" placeholder="Street, park, or neighborhood" required>
+          </div>
+          <div class="field full">
+            <label for="description">Description</label>
+            <textarea id="description" placeholder="Describe the problem..." required></textarea>
+          </div>
+          <div class="field full">
+            <label for="image">Photo (optional)</label>
+            <input id="image" type="file" accept="image/*">
+          </div>
+        </div>
+        <div class="form-buttons">
+          <button type="button" class="secondary" id="cancelForm">Cancel</button>
+          <button type="submit">Submit report</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="stats" id="stats"></section>
+
+    <section class="analytics">
+      <div class="card">
+        <h2>Frequently affected locations</h2>
+        <div id="locations"></div>
+      </div>
+      <div class="card">
+        <h2>Reported waste types</h2>
+        <div id="types"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="listTitle">Complaints</h2>
+      <div id="complaints"></div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "cleancity_demo_complaints";
+
+    const starterComplaints = [
+      {
+        id: "CC-1001",
+        type: "Overflowing bin",
+        location: "Market Street",
+        description: "The public bin near the bus stop is overflowing.",
+        status: "Pending",
+        worker: "",
+        date: new Date().toISOString()
+      },
+      {
+        id: "CC-1002",
+        type: "Illegal dumping",
+        location: "Riverside Park",
+        description: "Bags and old furniture have been dumped near the park entrance.",
+        status: "Assigned",
+        worker: "Aarav Sharma",
+        date: new Date().toISOString()
+      },
+      {
+        id: "CC-1003",
+        type: "Missed collection",
+        location: "Oak Avenue",
+        description: "Household waste was missed during the scheduled pickup.",
+        status: "In Progress",
+        worker: "Priya Patel",
+        date: new Date().toISOString()
+      },
+      {
+        id: "CC-1004",
+        type: "Street litter",
+        location: "Market Street",
+        description: "Food packaging and litter are scattered around the plaza.",
+        status: "Resolved",
+        worker: "Kabir Singh",
+        date: new Date().toISOString()
+      }
+    ];
+
+    let complaints;
+
+    try {
+      complaints = JSON.parse(localStorage.getItem(STORAGE_KEY)) || starterComplaints;
+    } catch {
+      complaints = starterComplaints;
+    }
+
+    const workers = ["Aarav Sharma", "Priya Patel", "Kabir Singh"];
+    const roleSelect = document.getElementById("role");
+
+    function save() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(complaints));
+      } catch {
+        alert("Could not save data in this browser.");
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, function (character) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;"
+        }[character];
+      });
+    }
+
+    function statusClass(status) {
+      return status.toLowerCase().replaceAll(" ", "-");
+    }
+
+    function render() {
+      const role = roleSelect.value;
+      const visibleComplaints = role === "worker"
+        ? complaints.filter(item => item.worker)
+        : complaints;
+
+      document.getElementById("title").textContent =
+        role === "admin" ? "Admin dashboard" :
+        role === "worker" ? "Worker dashboard" :
+        "Community dashboard";
+
+      document.getElementById("subtitle").textContent =
+        role === "admin" ? "Assign work and monitor complaint progress." :
+        role === "worker" ? "View assigned work and update task status." :
+        "Report waste problems and track cleanup progress.";
+
+      document.getElementById("showForm").style.display =
+        role === "citizen" ? "inline-block" : "none";
+
+      document.getElementById("listTitle").textContent =
+        role === "worker" ? "Assigned tasks" : "Complaints";
+
+      const total = complaints.length;
+      const pending = complaints.filter(c => c.status === "Pending").length;
+      const resolved = complaints.filter(c => c.status === "Resolved").length;
+      const inProgress = complaints.filter(c => c.status === "In Progress").length;
+      const rate = total ? Math.round(resolved / total * 100) : 0;
+
+      document.getElementById("stats").innerHTML = [
+        ["Total complaints", total],
+        ["Pending", pending],
+        ["In progress", inProgress],
+        ["Resolution rate", rate + "%"]
+      ].map(([label, value]) => `
+        <div class="stat">
+          <div class="stat-label">${label}</div>
+          <div class="stat-value">${value}</div>
+        </div>
+      `).join("");
+
+      renderAnalytics();
+      renderComplaints(visibleComplaints, role);
+    }
+
+    function renderAnalytics() {
+      const locationCounts = {};
+      const typeCounts = {};
+
+      complaints.forEach(item => {
+        locationCounts[item.location] = (locationCounts[item.location] || 0) + 1;
+        typeCounts[item.type] = (typeCounts[item.type] || 0) + 1;
+      });
+
+      const locationEntries = Object.entries(locationCounts)
+        .sort((a, b) => b[1] - a[1]);
+
+      document.getElementById("locations").innerHTML = locationEntries.length
+        ? locationEntries.map(([name, count]) => `
+            <div class="area-row">
+              <span>${escapeHtml(name)}</span>
+              <strong>${count} report${count === 1 ? "" : "s"}</strong>
+            </div>
+          `).join("")
+        : "<p>No locations reported yet.</p>";
+
+      document.getElementById("types").innerHTML =
+        Object.entries(typeCounts).map(([name, count]) =>
+          `<span class="tag">${escapeHtml(name)}: <strong>${count}</strong></span>`
+        ).join("") || "<p>No waste types reported yet.</p>";
+    }
+
+    function renderComplaints(items, role) {
+      const container = document.getElementById("complaints");
+
+      if (!items.length) {
+        container.innerHTML = '<div class="empty">No complaints to display.</div>';
+        return;
+      }
+
+      container.innerHTML = items.map(item => {
+        let actions = "";
+
+        if (role === "admin") {
+          const workerOptions = workers.map(worker =>
+            `<option value="${escapeHtml(worker)}" ${item.worker === worker ? "selected" : ""}>${escapeHtml(worker)}</option>`
+          ).join("");
+
+          actions = `
+            <select aria-label="Assign worker" onchange="assignWorker('${item.id}', this.value)">
+              <option value="">Assign worker</option>
+              ${workerOptions}
+            </select>
+            <select aria-label="Update status" onchange="updateStatus('${item.id}', this.value)">
+              ${["Pending", "Assigned", "In Progress", "Resolved"].map(status =>
+                `<option ${item.status === status ? "selected" : ""}>${status}</option>`
+              ).join("")}
+            </select>
+          `;
+        } else if (role === "worker" && item.worker) {
+          actions = `
+            <span class="complaint-info">Worker: ${escapeHtml(item.worker)}</span>
+            ${item.status !== "Resolved"
+              ? `<button class="small" onclick="advanceStatus('${item.id}')">Update status</button>`
+              : ""}
+          `;
+        } else if (item.worker) {
+          actions = `<span class="complaint-info">Assigned to ${escapeHtml(item.worker)}</span>`;
+        }
+
+        return `
+          <article class="complaint">
+            <div>
+              <div class="complaint-title">
+                ${escapeHtml(item.type)}
+                <span class="complaint-info">· ${escapeHtml(item.id)}</span>
+              </div>
+              <div class="description">${escapeHtml(item.description)}</div>
+              <div class="complaint-info">
+                📍 ${escapeHtml(item.location)}
+                · ${new Date(item.date).toLocaleDateString()}
+              </div>
+            </div>
+            <div class="actions">
+              <span class="status status-${statusClass(item.status)}">${escapeHtml(item.status)}</span>
+              ${actions}
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    window.assignWorker = function (id, worker) {
+      const complaint = complaints.find(item => item.id === id);
+      if (!complaint || !worker) return;
+
+      complaint.worker = worker;
+      if (complaint.status === "Pending") complaint.status = "Assigned";
+      save();
+      render();
+    };
+
+    window.updateStatus = function (id, status) {
+      const complaint = complaints.find(item => item.id === id);
+      if (!complaint) return;
+
+      complaint.status = status;
+      save();
+      render();
+    };
+
+    window.advanceStatus = function (id) {
+      const complaint = complaints.find(item => item.id === id);
+      if (!complaint) return;
+
+      const sequence = ["Assigned", "In Progress", "Resolved"];
+      const nextStatus = sequence[sequence.indexOf(complaint.status) + 1];
+
+      if (nextStatus) {
+        complaint.status = nextStatus;
+        save();
+        render();
+      }
+    };
+
+    document.getElementById("showForm").addEventListener("click", () => {
+      document.getElementById("reportForm").classList.add("open");
+    });
+
+    document.getElementById("cancelForm").addEventListener("click", () => {
+      document.getElementById("reportForm").classList.remove("open");
+    });
+
+    document.getElementById("complaintForm").addEventListener("submit", event => {
+      event.preventDefault();
+
+      const newComplaint = {
+        id: "CC-" + Date.now().toString().slice(-7),
+        type: document.getElementById("type").value,
+        location: document.getElementById("location").value.trim(),
+        description: document.getElementById("description").value.trim(),
+        status: "Pending",
+        worker: "",
+        date: new Date().toISOString()
+      };
+
+      complaints.unshift(newComplaint);
+      save();
+      event.target.reset();
+      document.getElementById("reportForm").classList.remove("open");
+      render();
+      alert("Report submitted! Complaint ID: " + newComplaint.id);
+    });
+
+    roleSelect.addEventListener("change", render);
+
+    render();
+  </script>
+</body>
+</html>
